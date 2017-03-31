@@ -7,7 +7,7 @@ fn all_permutations(vec: Vec<usize>) -> Vec<Vec<usize>> {
 		let first = &vec[i..i+1].to_vec();
 		let remaining_digits = [&vec[..i], &vec[i+1..]].concat();
 
-		let mut inner_perms = all_permutations(remaining_digits);
+		let inner_perms = all_permutations(remaining_digits);
 		for perm in inner_perms {
 			 let combined = [&first[..], &perm[..]].concat();
 			 permus.push(combined);
@@ -34,21 +34,13 @@ fn create_string(inner: Vec<usize>, outer: Vec<usize>) -> usize {
 		if substrings.len() == 5 { break; }
 	}
 
-	let digit_perms = all_permutations(substrings);
+	let joined = format!("{}{}{}{}{}", substrings[0].to_string(), 
+								   	   substrings[1].to_string(), 
+									   substrings[2].to_string(), 
+									   substrings[3].to_string(), 
+									   substrings[4].to_string()).parse::<usize>().unwrap();
 
-	let mut max_number = 0;
-	for perm in digit_perms {
-		let joined = format!("{}{}{}{}{}", perm[0].to_string(), 
-							  perm[1].to_string(), 
-							  perm[2].to_string(), 
-							  perm[3].to_string(), 
-							  perm[4].to_string()).parse::<usize>().unwrap();
-		if joined > max_number {
-			max_number = joined;
-		}
-	}
-
-	max_number
+	joined
 }
 
 
@@ -57,7 +49,6 @@ fn main() {
 	// Outer numbers: 6-10
 
 	let mut max_num = 0;
-	let target = 16;
 	let inner = vec![1, 2, 3, 4, 5];
 	let outer = vec![6, 7, 8, 9, 10];
 
@@ -65,20 +56,20 @@ fn main() {
 	let all_outer = all_permutations(outer);
 
 	for inner in &all_inner {
-		for outer in &all_outer {
-			for i in 0..5 {
+		'return_here: for outer in &all_outer {
+			let target = outer[0] + inner[0] + inner[1];
+			for i in 1..5 {
 				if target != outer[i] + inner[i] + inner[(i + 1) % 5] {
-					break;
-				}
-
-				let joined_max = create_string(inner.to_vec(), outer.to_vec());
-				if joined_max > max_num {
-					max_num = joined_max;
+					continue 'return_here;
 				}
 			}
 
+			let joined_max = create_string(inner.to_vec(), outer.to_vec());
+			if joined_max > max_num {
+				max_num = joined_max;
+			}
 		}
 	}
 
-	println!("{:?}", max_num);
+	println!("Maxiumum 16-digit string: {:?}", max_num);
 }
