@@ -1,9 +1,3 @@
-fn factorial(n: u64) -> u64 {
-	if n == 1 { return 1; }
-	n * factorial(n-1)
-}
-
-
 fn euclid_step(a: u64, b: u64) -> u64 {
 	if a % b == 0 { return b; }
 
@@ -29,17 +23,22 @@ fn main() {
 	Then P(i, range) = Number of n s.t. 1, 2, 3..., i-1 divide n, but i does not
 	*/
 
+	let mut factor = 1;
+	let mut total = 0;
 
-	let i = 6 as u64;
-	let range = 10 as u64;
-	// Need minimal numbers s.t. 1...6 divide fac
-	let fac = 1*2*2*3*5;
-	let num_in_range = range.pow(6 as u32) / fac;
+	for i in 1..top_lim + 1 {
+		let range_top = (4 as u64).pow(i as u32);
 
-	// Need to adjust for when fac + 1 divide our number
-	let act_num = num_in_range * 6 / 7;
+		let streak_1 = (range_top - 2) / factor;
 
-	println!("{:?}", hcf(fac, i+1));
-	println!("{:?}", fac);
-	println!("{:?}", act_num);
+		// Need to remove any numbers that have a streak for i+1 or higher
+		factor = factor * (i+1) / hcf(i+1, factor);
+		let streak_n = streak_1 - (range_top - 2) / factor;
+		
+		total += streak_n;
+	}
+
+	// Minus 1 as the i=1 case counts streak(1) = 1 by mistake
+	println!("Sum of P(i, 4^i) for 1 <= i <= 31: {:?}", total - 1);
+
 }
