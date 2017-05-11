@@ -25,9 +25,32 @@ fn mult_matrix(M: &Vec<Vec<f64>>, N: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
 }
 
 
-fn pivot_matrix(A: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
-	// TODO
-	A.clone()
+fn pivot_matrix(M: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
+    let m = M[0].len();
+
+    let mut id_mat = vec![vec![0.0 as f64; m]; m];
+    for i in 0..m {
+        id_mat[i][i] = 1.0 as f64;
+    }
+
+    for j in 0..m {
+        let mut row = j;
+        let mut max = 0.0 as f64;
+        for i in j..m {
+        	println!("{:?}", M[i][j].abs());
+            if M[i][j].abs() > max {
+                max = M[i][j].abs();
+                row = i;
+            }
+        }
+        if j != row {
+        	let temp = id_mat[row].clone();
+            id_mat[row] = id_mat[j].clone();
+            id_mat[j] = temp;
+        }
+    }
+
+    id_mat
 }
 
 
@@ -41,6 +64,8 @@ fn LU_decompose(A: Vec<Vec<f64>>) -> (Vec<Vec<f64>>, Vec<Vec<f64>>) {
 
 	for j in 0..n {
 		L[j][j] = 1.0;
+		println!("{:?}", L);
+		println!("{:?}", U);
 
 		for i in 0..j+1 {
 			let mut sum = 0.0 as f64;
@@ -84,9 +109,9 @@ fn main() {
 
 	let B = vec![vec![4.0 as f64, 3.0 as f64], vec![6.0 as f64, 3.0 as f64]];
 	// println!("{:?}", B);
-	// println!("{:?}", LU_decompose(B));
+	println!("{:?}", LU_decompose(B));
 
-	mult_matrix(&A, &B);
+	// println!("{:?}", mult_matrix(&A, &B));
 
 	let A = vec![vec![1, 1, 1],
 	             vec![1, 2, 4],
