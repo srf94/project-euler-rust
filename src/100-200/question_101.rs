@@ -1,19 +1,29 @@
-fn calc_fn(n: i64, coefs: &Vec<i64>) -> i64 {
-	let mut tot = 0;
+fn calc_fn(n: f64, coefs: &Vec<i64>) -> f64 {
+	let mut tot = 0.0 as f64;
 	for (power, coef) in coefs.iter().enumerate() {
-		tot += coef * n.pow(power as u32);
+		tot += (*coef as f64) * n.powi(power as i32);
 	}
 	tot
 }
 
+
 fn mult_matrix(M: &Vec<Vec<f64>>, N: &Vec<Vec<f64>>) -> Vec<Vec<f64>> {
-	let n = N[0].len();
+	// Multiply two matricies with dimensions axb and bxc
+	let a = M.len();
+	let b = M[0].len();
+	let b_ = N.len();
+	let c = N[0].len();
+
+	if b != b_ {
+		panic!("Tried to multiply matricies with dimensions {}x{} and {}x{}", a, b, b_, c);
+	}
+
 	let mut out = vec![];
 	for (row_loc, row_m) in M.iter().enumerate() {
 		let mut row_out = vec![];
-		for col_loc in 0..n {
+		for col_loc in 0..c {
 			let mut sum = 0.0 as f64;
-			for x in 0..n {
+			for x in 0..b {
 				sum += M[row_loc][x] * N[x][col_loc];
 			}
 			row_out.push(sum);
@@ -86,13 +96,12 @@ fn LU_decompose(A: Vec<Vec<f64>>) -> (Vec<Vec<f64>>, Vec<Vec<f64>>, Vec<Vec<f64>
 }
 
 
-
 fn main() {
 	let target_fn = vec![1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1];
-	println!("{:?}", calc_fn(1, &target_fn));
-	println!("{:?}", calc_fn(2, &target_fn));
-	println!("{:?}", calc_fn(3, &target_fn));
-	println!("{:?}", calc_fn(4, &target_fn));
+	println!("{:?}", calc_fn(1.0 as f64, &target_fn));
+	println!("{:?}", calc_fn(2.0 as f64, &target_fn));
+	println!("{:?}", calc_fn(3.0 as f64, &target_fn));
+	println!("{:?}", calc_fn(4.0 as f64, &target_fn));
 
 	// OP(1, n)
 	// a_0 = f(n) for n = 1
@@ -103,42 +112,34 @@ fn main() {
 	// (1  1) (a_0) = (f(1))
 	// (1  2) (a_1)   (f(2))
 	let A = vec![vec![1.0 as f64, 1.0 as f64], vec![1.0 as f64, 2.0 as f64]];
+	// let b = vec![calc_fn(1, &target_fn), calc_fn(2, &target_fn)];
+	let b = vec![vec![calc_fn(1.0 as f64, &target_fn)], vec![calc_fn(2.0 as f64, &target_fn)]];
 
-	let B = vec![vec![4.0 as f64, 3.0 as f64], vec![6.0 as f64, 3.0 as f64]];
-	// println!("{:?}", B);
-	// println!("{:?}", LU_decompose(B));
-
-	let tup = LU_decompose(B);
+	let tup = LU_decompose(A);
 	let P = tup.0;
 	let L = tup.1;
 	let U = tup.2;
 
-	let PL = mult_matrix(&P, &L);
-	let PLA = mult_matrix(&PL, &A);
-	let LU = mult_matrix(&L, &U);
+	// Ly = Pb
+	let Pb = mult_matrix(&P, &b);
 
-	println!("{:?}", PL);
-	println!("{:?}", PLA);
-	println!("{:?}", LU);
-	println!("{:?}", P);
+	let mut y = vec![0.0 as f64; b.len()];
+	y[0] = Pb[0][0] / L[0][0];
+	y[1] = (Pb[1][0] - L[1][0] * y[0]) / L[1][1];
 
-	// println!("{:?}", mult_matrix(&A, &B));
-	// println!("{:?}", pivot_matrix(&B));
+	// Ux = y
+	let mut x = vec![0.0 as f64; b.len()];
+	x[1] = y[1] / U[1][1];
+	x[0] = (y[0] - U[0][1] * y[1])/ U[0][0];
 
-	let A = vec![vec![1, 1, 1],
-	             vec![1, 2, 4],
-	             vec![1, 3, 9]];
+	println!("{:?}", L);
+	println!("{:?}", Pb);
+	println!("{:?}", y);
 
-	// println!("{:?}", A);
-	// println!("{:?}", LU_decompose(A));
-	// OP(m, n)
-	// (1  1  1  ..    1   ) (a_0) = (f(1))
-	// (1  2  4  .. 2^(m-1)) (a_1) = (f(2))
-	// (1  3  9  .. 3^(m-1)) (...) = (...)
-	// (1  4  16 .. 4^(m-1)) (a_m) = (f(m))
+	println!("{:?}", U);
+	println!("{:?}", x);
 
-	// So I need to find a matrix library (cgmath???) to handle this stuff for me
-	// Invert the matrix, find the coefficents.
-	// Find the BOP for each and we are done!
+	// x = [-681, 682] which is what we expect! This means f(1)=1, f(2)=638 (both correct)
+	// Then f(3) = 1365 - our FIT.
 
 }
